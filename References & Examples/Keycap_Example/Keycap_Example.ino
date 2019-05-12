@@ -55,50 +55,30 @@ void loop()
     newState = digitalRead(BUTTON_PIN);
     if (newState == HIGH){
       color_pos+=8;
-      strip.setPixelColor(0, Wheel(color_pos));
+      strip.setPixelColor(0, randomColour());
       strip.show();
     }
   }
-
- if( millis()-timecheck > 300)
- {
-   if (digitalRead(BUTTON_PIN)==HIGH)
-   {
- if(millis()-timecheck > longpress)
- {
-  while(digitalRead(BUTTON_PIN) == HIGH)
-  {
-  strip.setPixelColor(0,Wheel(color_pos));
-  strip.show();
-  delay(300);
-
-  strip.setPixelColor(0,0,0,0);
-  strip.show();
-  delay(300);
-  bool newState = digitalRead(BUTTON_PIN);
-  }
-  strip.setPixelColor(0,0,0,0);
-  strip.show();
-   timecheck = millis(); 
- }
-  }
-   }
-
-  // Set the last button state to the old state.
-  oldState = newState;
 }
 
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if(WheelPos < 85) {
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+uint32_t randomColour() {
+  int r = random(0, 255);
+  int g = random(0, 255);
+  int b = random(0, 255);
+  while (r > 180 && g > 180 && b > 180) {
+    switch(random(0, 2)){
+      case 0:
+        r = random(0, 255);
+      break;
+      case 1:
+        g = random(0, 255);
+      break;
+      case 2:
+        b = random(0, 255);
+      break;
+    }
   }
-  if(WheelPos < 170) {
-    WheelPos -= 85;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+    return strip.Color(r, g, b);
 }
