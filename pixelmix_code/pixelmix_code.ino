@@ -2,6 +2,7 @@
   #include <Wire.h>
   #include "rgb_lcd.h"
 
+  //Array to get heart custom character
   byte heart[8] = {
     0b00000,
     0b01010,
@@ -35,6 +36,7 @@ TrellisCallback blink(keyEvent evt){
   Serial.println("Button Pressed");
   // Check is the pad pressed?
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
+    //Only flash the buttons when the we are waiting for the user to press buttons or the game hasn't started yet
     if(waitingInput||!gameInProgress) {
       trellis.pixels.setPixelColor(evt.bit.NUM, trellis.pixels.Color(255, 255, 255)); //on rising
     }
@@ -91,6 +93,8 @@ void loop() {
     updateLCD();
     generateSequence();
     showSequence();
+    //Simulate gap while user presses buttons
+    delay(2000);
   }
 }
 
@@ -116,13 +120,17 @@ uint32_t Wheel(byte WheelPos) {
 }
 
 void showSequence() {
+  //For loop to go over all buttons in the sequence
   for (int i=0; i<difficulty; i++) {
     int colourInt = random(255);
     trellis.pixels.setPixelColor(sequence[i], Wheel(map(colourInt, 0, trellis.pixels.numPixels(), 0, 255)));
     trellis.pixels.show();
+    //Pause for so the user can see the led
     delay(playback);
+    //Turn off the led
     trellis.pixels.setPixelColor(sequence[i], trellis.pixels.Color(0, 0, 0));
     trellis.pixels.show();
+    //Pause incase the same button is in the sequence twice
     delay(playback-250);
   }
 }
@@ -145,6 +153,7 @@ void updateLCD() {
   lcd.print(score);
 }
 
+//Used then the when reset button pressed or when game first started
 void resetGame() {
   //Set values to default values
   playerLives = defaultLives;
@@ -152,6 +161,7 @@ void resetGame() {
   score = defaultScore;
   playback = defaultPlayback;
 
+  lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Press any button");
   lcd.setCursor(0, 1);
