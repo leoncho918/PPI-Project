@@ -47,7 +47,7 @@ TrellisCallback blink(keyEvent evt){
       gameInProgress = true;
     }
     if(waitingInput) {
-      
+      checkInput(evt);
     }
   }
 
@@ -133,6 +133,10 @@ void showSequence() {
     //Pause incase the same button is in the sequence twice
     delay(playback-250);
   }
+}
+
+void checkInput(keyEvent evt) {
+  
 }
 
 void updateLCD() {
