@@ -1,3 +1,5 @@
+#include <rgb_lcd.h>
+
   #include "Adafruit_NeoTrellis.h"
   #include <Wire.h>
   #include "rgb_lcd.h"
@@ -112,6 +114,29 @@ void loop() {
     }
     waitingInput = false;
   }
+  if (playerLives <= 0) {
+    gameInProgress = false;
+    waitingInput = false;
+    gameOver();
+  }
+}
+
+void gameOver() {
+  lcd.clear();
+  lcd.setCursor(5, 0);
+  lcd.print("Gameover");
+  delay(5000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("HS:");
+  lcd.print(highScore);
+  lcd.setCursor(0, 1);
+  lcd.print("S:");
+  lcd.print(score);
+  if (score > highScore)
+    highScore = score;
+  delay(5000);
+  resetGame();
 }
 
 void generateSequence() { //Function to generate a random sequence of buttons to flash
