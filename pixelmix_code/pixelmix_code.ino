@@ -17,6 +17,7 @@
   
   bool gameInProgress, waitingInput; //Keep track of game events
   int playerLives, difficulty, score, highScore, playback; //Keep track of player values and highscore;
+  int checkedButton;
   
   const int numOfButtons = 16; //Change value depending on amount of buttons in system
   const int defaultLives = 3; //Default value for player's lives
@@ -47,8 +48,18 @@ TrellisCallback blink(keyEvent evt){
       gameInProgress = true;
     }
     if(waitingInput) {
-      checkInput(evt);
+      if(correctInput(evt)) {
+        Serial.println("Correct button");
+        score+=100;
+        checkedButton++;
+      }
+      else {
+        Serial.println("Incorrect Button, Showing Sequence Again");
+        playerLives--;
+        showSequence();
+      }
     }
+    updateLCD();
   }
 
   // Turn on/off the neopixels!
@@ -93,8 +104,13 @@ void loop() {
     updateLCD();
     generateSequence();
     showSequence();
-    //Simulate gap while user presses buttons
-    delay(2000);
+    
+    waitingInput = true;
+    checkedButton = 0;
+    while(checkedButton<difficulty) {
+      trellis.read();
+    }
+    waitingInput = false;
   }
 }
 
@@ -135,8 +151,13 @@ void showSequence() {
   }
 }
 
-void checkInput(keyEvent evt) {
-  
+bool correctInput(keyEvent evt) {
+  if(sequence[checkedButton] == evt.bit.NUM) {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 void updateLCD() {
