@@ -3,6 +3,7 @@
   #include "Adafruit_NeoTrellis.h"
   #include <Wire.h>
   #include "rgb_lcd.h"
+  #include <EEPROM.h>
 
   //Array to get heart custom character
   byte heart[8] = {
@@ -28,6 +29,7 @@
   const int defaultPlayback = 500; //Default value for speed of button lights flash
   const int cMin = 120; //Minimum colour value
   const int cMax = 255; //Maximum colour value
+  const int eeAddress = 0;
 
   int sequence[numOfButtons]; //Store sequence of buttons to be played
   Adafruit_NeoTrellis trellis;
@@ -78,8 +80,14 @@ void setup() {
   setupLCD();
   setupTrellis();
   
+  EEPROM.get(eeAddress, highScore);
+  if(highScore < 0)
+    highScore = 0;
+  Serial.print("Highscore: ");
+  Serial.println(highScore);
+  
   resetGame(); //Set all values to default values when starting game
-  highScore = 0; //Set initial highscore to 0
+  
   gameInProgress = false;
   waitingInput = false;
 }
@@ -167,6 +175,7 @@ void gameOver() {
     lcd.setCursor(1, 0);
     lcd.print("NEW HIGHSCORE!");
     highScore = score;
+    EEPROM.put(eeAddress, highScore);
     delay(2000);
     lcd.clear();
     lcd.setCursor(0,0);
