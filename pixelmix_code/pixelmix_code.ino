@@ -62,11 +62,12 @@ TrellisCallback blink(keyEvent evt){
       }
     }
     updateLCD();
+    Serial.println("Button Released");
   }
 
   // Turn on/off the neopixels!
   trellis.pixels.show();
-
+  delay(250);
   return 0;
 }
 
@@ -98,10 +99,23 @@ void setupTrellis() {
     trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING);
     trellis.registerCallback(i, blink);
   }
+
+  for (int i=0; i<numOfButtons; i++) {
+    trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
+    trellis.pixels.show();
+    delay(50);
+  }
+  for (int i=0; i<numOfButtons; i++) {
+    trellis.pixels.setPixelColor(i, 0x000000);
+    trellis.pixels.show();
+    delay(50);
+  }
 }
 
 void loop() {
-  trellis.read();
+  if (!gameInProgress) {
+    trellis.read();
+  }
   if (gameInProgress) {
     updateLCD();
     generateSequence();
@@ -109,15 +123,29 @@ void loop() {
     
     waitingInput = true;
     checkedButton = 0;
-    while(checkedButton<difficulty) {
+    while(checkedButton<difficulty && playerLives > 0) {
       trellis.read();
     }
     waitingInput = false;
-  }
-  if (playerLives <= 0) {
-    gameInProgress = false;
-    waitingInput = false;
-    gameOver();
+    if (playerLives <= 0) {
+      Serial.println("Gameover");
+      gameInProgress = false;
+      waitingInput = false;
+      gameOver();
+    }
+    else {
+      score+=500;
+      for (int i=0; i<numOfButtons; i++) {
+      trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
+      trellis.pixels.show();
+      delay(50);
+      }
+      for (int i=0; i<numOfButtons; i++) {
+        trellis.pixels.setPixelColor(i, 0x000000);
+        trellis.pixels.show();
+        delay(50);
+      }
+    }
   }
 }
 
@@ -133,8 +161,21 @@ void gameOver() {
   lcd.setCursor(0, 1);
   lcd.print("S:");
   lcd.print(score);
-  if (score > highScore)
+  delay(2000);
+  if (score > highScore) {
+    lcd.clear();
+    lcd.setCursor(1, 0);
+    lcd.print("NEW HIGHSCORE!");
     highScore = score;
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("HS:");
+    lcd.print(highScore);
+    lcd.setCursor(0, 1);
+    lcd.print("S:");
+    lcd.print(score);
+  }
   delay(5000);
   resetGame();
 }
@@ -177,10 +218,18 @@ void showSequence() {
 }
 
 bool correctInput(keyEvent evt) {
-  if(sequence[checkedButton] == evt.bit.NUM) {
+    if(sequence[checkedButton] == evt.bit.NUM) {
     return true;
   }
   else {
+    for(int i=0;i<numOfButtons;i++) {
+      trellis.pixels.setPixelColor(i, trellis.pixels.Color(255, 0, 0));
+    }
+    trellis.pixels.show();
+    delay(500);
+    for(int i=0;i<numOfButtons;i++) {
+      trellis.pixels.setPixelColor(i, trellis.pixels.Color(0, 0, 0));
+    }
     return false;
   }
 }
