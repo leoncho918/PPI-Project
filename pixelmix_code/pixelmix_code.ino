@@ -60,6 +60,7 @@ TrellisCallback blink(keyEvent evt){
       else {
         Serial.println("Incorrect Button, Showing Sequence Again");
         playerLives--;
+        checkedButton = 0;
         showSequence();
       }
     }
