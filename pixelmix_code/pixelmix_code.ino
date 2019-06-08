@@ -38,9 +38,9 @@
 
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
-  Serial.println("Button Pressed");
   // Check is the pad pressed?
   if (evt.bit.EDGE == SEESAW_KEYPAD_EDGE_RISING) {
+    Serial.println("Button Pressed");
     //Only flash the buttons when the we are waiting for the user to press buttons or the game hasn't started yet
     if(waitingInput||!gameInProgress) {
       trellis.pixels.setPixelColor(evt.bit.NUM, trellis.pixels.Color(255, 255, 255)); //on rising
@@ -70,7 +70,7 @@ TrellisCallback blink(keyEvent evt){
 
   // Turn on/off the neopixels!
   trellis.pixels.show();
-  delay(250);
+  delay(50);
   return 0;
 }
 
