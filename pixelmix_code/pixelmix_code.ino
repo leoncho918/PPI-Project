@@ -61,6 +61,11 @@ TrellisCallback blink(keyEvent evt){
         Serial.println("Incorrect Button, Showing Sequence Again");
         playerLives--;
         checkedButton = 0;
+        if(playerLives <= 0) {
+          lcd.clear();
+          lcd.setCursor(5, 0);
+          lcd.print("Gameover");
+        }
         showSequence();
       }
     }
@@ -137,7 +142,6 @@ void loop() {
     }
     waitingInput = false;
     if (playerLives <= 0) {
-      Serial.println("Gameover");
       gameInProgress = false;
       waitingInput = false;
       gameOver();
@@ -214,8 +218,7 @@ uint32_t Wheel(byte WheelPos) {
 void showSequence() {
   //For loop to go over all buttons in the sequence
   for (int i=0; i<difficulty; i++) {
-    int colourInt = random(255);
-    trellis.pixels.setPixelColor(sequence[i], Wheel(map(colourInt, 0, trellis.pixels.numPixels(), 0, 255)));
+    trellis.pixels.setPixelColor(sequence[i], trellis.pixels.Color(255, 255, 255));
     trellis.pixels.show();
     //Pause for so the user can see the led
     delay(playback);
