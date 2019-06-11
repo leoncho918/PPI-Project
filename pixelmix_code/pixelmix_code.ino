@@ -86,7 +86,6 @@ void setup() {
 
   Serial.println("Setting up devices");
   setupLCD();
-  setupTrellis();
   
   EEPROM.get(eeAddress, highScore);
   if(highScore < 0)
@@ -95,6 +94,8 @@ void setup() {
   Serial.println(highScore);
   
   resetGame(); //Set all values to default values when starting game
+  
+  setupTrellis();
   
   gameInProgress = false;
   waitingInput = false;
@@ -133,6 +134,7 @@ void loop() {
     trellis.read();
   }
   if (gameInProgress) {
+    updateDifficulty();
     updateLCD();
     generateSequence();
     showSequence();
@@ -164,7 +166,23 @@ void winRound() {
     gameLevel++;
     gameRound = 1;
   }
+
+  updateDifficulty();
   
+  updateLCD();
+  for (int i=0; i<numOfButtons; i++) {
+  trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
+  trellis.pixels.show();
+  delay(50);
+  }
+  for (int i=0; i<numOfButtons; i++) {
+    trellis.pixels.setPixelColor(i, 0x000000);
+    trellis.pixels.show();
+    delay(50);
+  }
+}
+
+void updateDifficulty() {
   switch(gameLevel) {
       case 1:
         playback = 750;
@@ -194,22 +212,14 @@ void winRound() {
       case 9:
         playback = 250;
         break;
+      case 10:
+        playback = 250;
+        difficulty = 8;
+        break;
       default:
         difficulty++;
         break;
     }
-  
-  updateLCD();
-  for (int i=0; i<numOfButtons; i++) {
-  trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
-  trellis.pixels.show();
-  delay(50);
-  }
-  for (int i=0; i<numOfButtons; i++) {
-    trellis.pixels.setPixelColor(i, 0x000000);
-    trellis.pixels.show();
-    delay(50);
-  }
 }
 
 void gameOver() {
@@ -304,11 +314,17 @@ void updateLCD() {
   lcd.print("H:");
   lcd.print(highScore);
   lcd.setCursor(9, 0);
-  lcd.print("L:");
-  lcd.print(gameLevel);
-  lcd.setCursor(13, 0);
-  lcd.print("R:");
-  lcd.print(gameRound);
+  
+  if(gameLevel < 10) {
+    lcd.print("L:");
+    lcd.print(gameLevel);
+    lcd.setCursor(13, 0);
+    lcd.print("R:");
+    lcd.print(gameRound);
+  }
+  else {
+    lcd.print("L:9000+");
+  }
   
   lcd.setCursor(0, 1);
   lcd.print("L:");
