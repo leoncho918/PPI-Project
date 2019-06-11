@@ -19,17 +19,19 @@
 
   
   bool gameInProgress, waitingInput; //Keep track of game events
-  int playerLives, difficulty, score, highScore, playback; //Keep track of player values and highscore;
+  int playerLives, difficulty, score, highScore, playback, gameLevel, gameRound; //Keep track of player values and highscore;
   int checkedButton;
   
   const int numOfButtons = 16; //Change value depending on amount of buttons in system
   const int defaultLives = 3; //Default value for player's lives
   const int defaultDifficulty = 3; //Default value of starting difficulty
   const int defaultScore = 0; //Default value of starting score
-  const int defaultPlayback = 500; //Default value for speed of button lights flash
+  const int defaultPlayback = 750; //Default value for speed of button lights flash
   const int cMin = 120; //Minimum colour value
   const int cMax = 255; //Maximum colour value
   const int eeAddress = 0;
+  const int defaultGameLevel = 1;
+  const int defaultGameRound = 1;
 
   int sequence[numOfButtons]; //Store sequence of buttons to be played
   Adafruit_NeoTrellis trellis;
@@ -137,6 +139,7 @@ void loop() {
     
     waitingInput = true;
     checkedButton = 0;
+    int prevLife = playerLives;
     while(checkedButton<difficulty && playerLives > 0) {
       trellis.read();
     }
@@ -147,18 +150,65 @@ void loop() {
       gameOver();
     }
     else {
-      score+=500;
-      for (int i=0; i<numOfButtons; i++) {
-      trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
-      trellis.pixels.show();
-      delay(50);
-      }
-      for (int i=0; i<numOfButtons; i++) {
-        trellis.pixels.setPixelColor(i, 0x000000);
-        trellis.pixels.show();
-        delay(50);
-      }
+      winRound();
     }
+  }
+}
+
+void winRound() {
+  score+=500;
+
+  gameRound++;
+
+  if (gameRound > 5) {
+    gameLevel++;
+    gameRound = 1;
+  }
+  
+  switch(gameLevel) {
+      case 1:
+        playback = 750;
+        break;
+      case 2:
+        difficulty = 4;
+        break;
+      case 3:
+        playback = 650;
+        break;
+      case 4:
+        difficulty = 5;
+        break;
+      case 5:
+        playback = 550;
+        break;
+      case 6:
+        difficulty = 6;
+        break;
+      case 7:
+        playback = 450;
+        break;
+      case 8:
+        difficulty = 7;
+        playback = 350;
+        break;
+      case 9:
+        playback = 250;
+        break;
+      default:
+        difficulty++;
+        break;
+    }
+  
+  updateLCD();
+  for (int i=0; i<numOfButtons; i++) {
+  trellis.pixels.setPixelColor(i, Wheel(map(i, 0, trellis.pixels.numPixels(), 0, 255)));
+  trellis.pixels.show();
+  delay(50);
+  }
+  for (int i=0; i<numOfButtons; i++) {
+    trellis.pixels.setPixelColor(i, 0x000000);
+    trellis.pixels.show();
+    delay(50);
   }
 }
 
@@ -251,8 +301,14 @@ void updateLCD() {
   lcd.clear();
 
   lcd.setCursor(0, 0);
-  lcd.print("HS:");
+  lcd.print("H:");
   lcd.print(highScore);
+  lcd.setCursor(9, 0);
+  lcd.print("L:");
+  lcd.print(gameLevel);
+  lcd.setCursor(13, 0);
+  lcd.print("R:");
+  lcd.print(gameRound);
   
   lcd.setCursor(0, 1);
   lcd.print("L:");
@@ -272,6 +328,8 @@ void resetGame() {
   difficulty = defaultDifficulty;
   score = defaultScore;
   playback = defaultPlayback;
+  gameLevel = defaultGameLevel;
+  gameRound = defaultGameRound;
 
   lcd.clear();
   lcd.setCursor(0, 0);
