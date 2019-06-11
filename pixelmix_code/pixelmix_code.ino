@@ -33,7 +33,7 @@
   const int eeAddress = 0;
   const int defaultGameLevel = 1;
   const int defaultGameRound = 1;
-  const int buzzerPin = 6; 
+  const int buzzerPin = 5;
 
   int sequence[numOfButtons]; //Store sequence of buttons to be played
   Adafruit_NeoTrellis trellis;
@@ -58,7 +58,8 @@ TrellisCallback blink(keyEvent evt){
     if(waitingInput) {
       if(correctInput(evt)) {
         Serial.println("Correct button");
-        buzz(buzzerPin, NOTE_A5, 250);
+        if(checkedButton < 2)
+          buzz(buzzerPin, NOTE_A5, 250);
         score+=100;
         checkedButton++;
       }
@@ -67,14 +68,20 @@ TrellisCallback blink(keyEvent evt){
         playerLives--;
         checkedButton = 0;
         
-        buzz(buzzerPin, NOTE_A2, 150);
-        delay(50);
-        buzz(buzzerPin, NOTE_A1, 150);
-        
         if(playerLives <= 0) {
           lcd.clear();
           lcd.setCursor(5, 0);
           lcd.print("Gameover");
+          buzz(buzzerPin, NOTE_F3, 250);
+          delay(50);
+          buzz(buzzerPin, NOTE_D2, 250);
+          delay(50);
+          buzz(buzzerPin, NOTE_B1, 250);
+        }
+        else {
+          buzz(buzzerPin, NOTE_A2, 150);
+          delay(50);
+          buzz(buzzerPin, NOTE_A1, 150);
         }
         showSequence();
       }
@@ -94,6 +101,8 @@ void setup() {
 
   Serial.println("Setting up devices");
   setupLCD();
+
+  pinMode(buzzerPin, OUTPUT);
   
   EEPROM.get(eeAddress, highScore);
   if(highScore < 0)
@@ -177,9 +186,9 @@ void winRound() {
 
   updateDifficulty();
 
+  buzz(buzzerPin, NOTE_A5, 250);
+  delay(25);
   buzz(buzzerPin, NOTE_A6, 250);
-  delay(50);
-  buzz(buzzerPin, NOTE_E7, 250);
   
   updateLCD();
   for (int i=0; i<numOfButtons; i++) {
@@ -358,7 +367,8 @@ void resetGame() {
   playback = defaultPlayback;
   gameLevel = defaultGameLevel;
   gameRound = defaultGameRound;
-
+  gameInProgress = false;
+  
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Press any button");
