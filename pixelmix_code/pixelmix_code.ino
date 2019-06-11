@@ -4,6 +4,7 @@
   #include <Wire.h>
   #include "rgb_lcd.h"
   #include <EEPROM.h>
+  #include "notes.h"
 
   //Array to get heart custom character
   byte heart[8] = {
@@ -32,6 +33,7 @@
   const int eeAddress = 0;
   const int defaultGameLevel = 1;
   const int defaultGameRound = 1;
+  const int buzzerPin = 6; 
 
   int sequence[numOfButtons]; //Store sequence of buttons to be played
   Adafruit_NeoTrellis trellis;
@@ -56,6 +58,7 @@ TrellisCallback blink(keyEvent evt){
     if(waitingInput) {
       if(correctInput(evt)) {
         Serial.println("Correct button");
+        buzz(buzzerPin, NOTE_A5, 250);
         score+=100;
         checkedButton++;
       }
@@ -63,6 +66,11 @@ TrellisCallback blink(keyEvent evt){
         Serial.println("Incorrect Button, Showing Sequence Again");
         playerLives--;
         checkedButton = 0;
+        
+        buzz(buzzerPin, NOTE_A2, 150);
+        delay(50);
+        buzz(buzzerPin, NOTE_A1, 150);
+        
         if(playerLives <= 0) {
           lcd.clear();
           lcd.setCursor(5, 0);
@@ -168,6 +176,10 @@ void winRound() {
   }
 
   updateDifficulty();
+
+  buzz(buzzerPin, NOTE_A6, 250);
+  delay(50);
+  buzz(buzzerPin, NOTE_E7, 250);
   
   updateLCD();
   for (int i=0; i<numOfButtons; i++) {
@@ -359,4 +371,19 @@ void resetGame() {
   }
 
   trellis.pixels.show();
+}
+
+void buzz(int targetPin, long frequency, long length) {
+  long delayValue = 1000000 / frequency / 2; // calculate the delay value between transitions
+  //// 1 second's worth of microseconds, divided by the frequency, then split in half since
+  //// there are two phases to each cycle
+  long numCycles = frequency * length / 1000; // calculate the number of cycles for proper timing
+  //// multiply frequency, which is really cycles per second, by the number of seconds to
+  //// get the total number of cycles to produce
+  for (long i = 0; i < numCycles; i++) { // for the calculated length of time...
+    digitalWrite(targetPin, HIGH); // write the buzzer pin high to push out the diaphram
+    delayMicroseconds(delayValue); // wait for the calculated delay value
+    digitalWrite(targetPin, LOW); // write the buzzer pin low to pull back the diaphram
+    delayMicroseconds(delayValue); // wait again or the calculated delay value
+  }
 }
