@@ -19,7 +19,7 @@
   };
 
   
-  bool gameInProgress, waitingInput; //Keep track of game events
+  bool gameInProgress, waitingInput, resettingGame; //Keep track of game events
   int playerLives, difficulty, score, highScore, playback, gameLevel, gameRound; //Keep track of player values and highscore;
   int checkedButton;
   
@@ -34,8 +34,14 @@
   const int defaultGameLevel = 1;
   const int defaultGameRound = 1;
   const int buzzerPin = 5;
+  const int ledPin = 6; 
+  const int buttonPin = 7;
 
   int sequence[numOfButtons]; //Store sequence of buttons to be played
+  int prevButtonState = HIGH;
+  int buttonState;
+  unsigned long lastDebounceTime = 0;
+  unsigned long debounceDelay = 0;
   Adafruit_NeoTrellis trellis;
   rgb_lcd lcd;
 
@@ -103,6 +109,8 @@ void setup() {
   setupLCD();
 
   pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT);
   
   EEPROM.get(eeAddress, highScore);
   if(highScore < 0)
@@ -160,16 +168,36 @@ void loop() {
     checkedButton = 0;
     int prevLife = playerLives;
     while(checkedButton<difficulty && playerLives > 0) {
+      digitalWrite(ledPin, HIGH);
+      
       trellis.read();
+
+      int reading = digitalRead(buttonPin);
+      if (reading!=prevButtonState)
+        lastDebounceTime = millis();
+      if((millis() - lastDebounceTime) > debounceDelay) {
+        if(reading!=buttonState) {
+          buttonState = reading;
+          if(buttonState==HIGH) {
+            Serial.println("Reset Pressed");
+            digitalWrite(ledPin, LOW);
+            resettingGame = true;
+            break;
+          }
+        }
+      }
     }
     waitingInput = false;
-    if (playerLives <= 0) {
+    if (playerLives <= 0 && !resettingGame) {
       gameInProgress = false;
       waitingInput = false;
       gameOver();
     }
-    else {
+    else if (!resettingGame){
       winRound();
+    }
+    else {
+      resetGame();
     }
   }
 }
@@ -368,7 +396,9 @@ void resetGame() {
   gameLevel = defaultGameLevel;
   gameRound = defaultGameRound;
   gameInProgress = false;
-  
+  waitingInput = false;
+  resettingGame = false;
+
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Press any button");
