@@ -45,6 +45,8 @@
   Adafruit_NeoTrellis trellis;
   rgb_lcd lcd;
 
+  void(* resetFunc) (void) = 0;
+
 
 //define a callback for key presses
 TrellisCallback blink(keyEvent evt){
@@ -168,24 +170,8 @@ void loop() {
     checkedButton = 0;
     int prevLife = playerLives;
     while(checkedButton<difficulty && playerLives > 0) {
-      digitalWrite(ledPin, HIGH);
-      
       trellis.read();
-
-      int reading = digitalRead(buttonPin);
-      if (reading!=prevButtonState)
-        lastDebounceTime = millis();
-      if((millis() - lastDebounceTime) > debounceDelay) {
-        if(reading!=buttonState) {
-          buttonState = reading;
-          if(buttonState==HIGH) {
-            Serial.println("Reset Pressed");
-            digitalWrite(ledPin, LOW);
-            resettingGame = true;
-            break;
-          }
-        }
-      }
+      checkReset();
     }
     waitingInput = false;
     if (playerLives <= 0 && !resettingGame) {
@@ -199,6 +185,15 @@ void loop() {
     else {
       resetGame();
     }
+  }
+}
+
+void checkReset() {
+  digitalWrite(ledPin, HIGH);
+  int reading = digitalRead(buttonPin);
+  if (reading == LOW) {
+    digitalWrite(ledPin, LOW);
+    resetFunc();
   }
 }
 
@@ -327,6 +322,7 @@ uint32_t Wheel(byte WheelPos) {
 void showSequence() {
   //For loop to go over all buttons in the sequence
   for (int i=0; i<difficulty; i++) {
+    checkReset();
     trellis.pixels.setPixelColor(sequence[i], trellis.pixels.Color(255, 255, 255));
     trellis.pixels.show();
     //Pause for so the user can see the led
