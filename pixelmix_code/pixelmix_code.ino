@@ -31,7 +31,7 @@
   const int cMin = 120; //Minimum colour value
   const int cMax = 255; //Maximum colour value
   const int eeAddress = 0;
-  const int defaultGameLevel = 1;
+  const int defaultGameLevel = 10;
   const int defaultGameRound = 1;
   const int buzzerPin = 5;
   const int ledPin = 6; 
@@ -161,6 +161,7 @@ void loop() {
     trellis.read();
   }
   if (gameInProgress) {
+    activateButtons(false);
     updateDifficulty();
     updateLCD();
     generateSequence();
@@ -169,10 +170,12 @@ void loop() {
     waitingInput = true;
     checkedButton = 0;
     int prevLife = playerLives;
+    activateButtons(true);
     while(checkedButton<difficulty && playerLives > 0) {
       trellis.read();
       checkReset();
     }
+    activateButtons(false);
     waitingInput = false;
     if (playerLives <= 0 && !resettingGame) {
       gameInProgress = false;
@@ -226,6 +229,13 @@ void winRound() {
   }
 }
 
+void activateButtons(bool isActivated) {
+  for(int i=0;i<numOfButtons;i++) {
+    trellis.activateKey(i, SEESAW_KEYPAD_EDGE_RISING, isActivated);
+    trellis.activateKey(i, SEESAW_KEYPAD_EDGE_FALLING, isActivated);
+  }
+}
+
 void updateDifficulty() {
   switch(gameLevel) {
       case 1:
@@ -267,6 +277,7 @@ void updateDifficulty() {
 }
 
 void gameOver() {
+  digitalWrite(ledPin, LOW);
   lcd.clear();
   lcd.setCursor(5, 0);
   lcd.print("Gameover");
@@ -320,6 +331,7 @@ uint32_t Wheel(byte WheelPos) {
 }
 
 void showSequence() {
+  activateButtons(false);
   //For loop to go over all buttons in the sequence
   for (int i=0; i<difficulty; i++) {
     checkReset();
@@ -331,8 +343,9 @@ void showSequence() {
     trellis.pixels.setPixelColor(sequence[i], trellis.pixels.Color(0, 0, 0));
     trellis.pixels.show();
     //Pause incase the same button is in the sequence twice
-    delay(playback-250);
+    delay(250);
   }
+  activateButtons(true);
 }
 
 bool correctInput(keyEvent evt) {
