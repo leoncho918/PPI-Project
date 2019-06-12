@@ -31,7 +31,7 @@
   const int cMin = 120; //Minimum colour value
   const int cMax = 255; //Maximum colour value
   const int eeAddress = 0;
-  const int defaultGameLevel = 10;
+  const int defaultGameLevel = 1;
   const int defaultGameRound = 1;
   const int buzzerPin = 5;
   const int ledPin = 6; 
