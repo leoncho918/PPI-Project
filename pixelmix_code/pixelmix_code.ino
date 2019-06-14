@@ -158,6 +158,7 @@ void setupTrellis() {
 
 void loop() {
   if (!gameInProgress) {
+    activateButtons(true);
     trellis.read();
   }
   if (gameInProgress) {
