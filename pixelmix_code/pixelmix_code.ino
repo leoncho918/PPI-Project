@@ -66,7 +66,7 @@ TrellisCallback blink(keyEvent evt){
     if(waitingInput) {
       if(correctInput(evt)) {
         Serial.println("Correct button");
-        if(checkedButton < 2)
+        if(checkedButton < difficulty-1)
           buzz(buzzerPin, NOTE_A5, 250);
         score+=100;
         checkedButton++;
